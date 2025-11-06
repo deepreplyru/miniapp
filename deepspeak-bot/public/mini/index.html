@@ -1,0 +1,117 @@
+<!-- Статика для Vercel. Откроется по https://<домен>/mini -->
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>DeepSpeak — Mini App</title>
+  <style>
+    :root { --bg:#0f1115; --card:#151922; --text:#e7eef7; --muted:#99a3b3; --brand:#00c16a; --accent:#2d6cff; --border:#232a36 }
+    * { box-sizing: border-box; }
+    body { margin:0; font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif; background:var(--bg); color:var(--text) }
+    .wrap { max-width:780px; margin:0 auto; padding:16px }
+    .card { background:var(--card); border:1px solid var(--border); border-radius:16px; padding:16px; box-shadow:0 10px 30px rgba(0,0,0,.25) }
+    h1 { font-size:20px; margin:0 0 8px }
+    p { margin:8px 0; color:var(--muted); line-height:1.45 }
+    .row { display:grid; grid-template-columns:1fr; gap:12px }
+    .btn { display:inline-flex; align-items:center; justify-content:center; gap:10px; padding:12px 14px; border-radius:12px; border:1px solid var(--border); background:#1a1f2a; color:var(--text); text-decoration:none; cursor:pointer; font-weight:600; transition:.15s; width:100% }
+    .btn:hover { filter:brightness(1.08) }
+    .btn.brand { background:var(--brand); border-color:var(--brand); color:#09110c }
+    .btn.accent { background:var(--accent); border-color:var(--accent) }
+    .btn.ghost { background:transparent }
+    .btn.secondary { background:#0f1320 }
+    .grid2 { display:grid; grid-template-columns:1fr 1fr; gap:10px }
+    .pill { border:1px solid var(--border); background:#0f1320; padding:8px 10px; border-radius:12px; font-size:13px; color:var(--muted) }
+    .divider { height:1px; background:var(--border); margin:12px 0 }
+    .hidden { display:none!important }
+    .progress { height:10px; background:#0e1220; border:1px solid var(--border); border-radius:999px; overflow:hidden }
+    .progress > i { display:block; height:100%; width:0%; background:linear-gradient(90deg,#2d6cff,#00c16a) }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="card" id="screen-intro">
+      <h1>Пробный урок (30 мин)</h1>
+      <p>Без регистрации. Сразу практика: лексика → мини-диалог → фидбек. В конце — отчёт и покупка курса.</p>
+      <div class="divider"></div>
+      <div class="row">
+        <button class="btn brand" id="btn-start">Начать урок</button>
+        <div class="grid2">
+          <button class="btn secondary" id="btn-extend">Продлить +30 мин</button>
+          <button class="btn ghost" id="btn-open-chat">Открыть чат бота</button>
+        </div>
+      </div>
+      <p style="font-size:12px;color:#8fa2bd">Открой в Telegram для лучшего опыта.</p>
+    </div>
+
+    <div class="card hidden" id="screen-lesson">
+      <h1 id="step-title">Шаг 1 из 8 — знакомство</h1>
+      <div class="progress" aria-label="прогресс"><i id="bar"></i></div>
+      <p id="step-text">Скажи по-английски: <i>“My name is …”</i></p>
+      <ul class="list" id="tips"></ul>
+      <div class="divider"></div>
+      <div class="grid2">
+        <button class="btn" id="btn-prev">Назад</button>
+        <button class="btn accent" id="btn-next">Далее</button>
+      </div>
+    </div>
+
+    <div class="card hidden" id="screen-offtg">
+      <h1>Открой в Telegram</h1>
+      <p>Это мини-приложение. Открой в чате с ботом.</p>
+      <button class="btn accent" id="btn-open-tg">Открыть бота</button>
+    </div>
+  </div>
+
+  <script>
+    const BOT_USERNAME = (new URLSearchParams(location.search).get('bot')) || '<YOUR_BOT_USERNAME>';
+    const LINKS = {
+      extend: `https://t.me/${BOT_USERNAME}?start=extend`,
+      bot:    `https://t.me/${BOT_USERNAME}`
+    };
+
+    const isTelegram = typeof window.Telegram !== 'undefined' && Telegram.WebApp;
+    const $intro   = document.getElementById('screen-intro');
+    const $lesson  = document.getElementById('screen-lesson');
+    const $offtg   = document.getElementById('screen-offtg');
+    const $title = document.getElementById('step-title');
+    const $text  = document.getElementById('step-text');
+    const $tips  = document.getElementById('tips');
+    const $bar   = document.getElementById('bar');
+
+    function show(el){ [$intro,$lesson,$offtg].forEach(x=>x.classList.add('hidden')); el.classList.remove('hidden'); }
+
+    if (!isTelegram) show($offtg); else show($intro);
+
+    const steps = [
+      { t:'Шаг 1 из 8 — знакомство', d:'Скажи: “My name is …”', tips:['Ударение на name.'] },
+      { t:'Шаг 2 — откуда ты', d:'“I am from …”', tips:['В разговоре: I\'m from …'] },
+      { t:'Шаг 3 — работа', d:'“I work as a …”', tips:['as a + должность.'] },
+      { t:'Шаг 4 — small talk', d:'Спроси: “How are you today?”', tips:['Интонация ↑ в вопросе.'] },
+      { t:'Шаг 5 — ответ', d:'“I\'m fine, thanks.”', tips:['Коротко и вежливо.'] },
+      { t:'Шаг 6 — мини-диалог', d:'Собери диалог из 3 фраз', tips:['Короткие фразы — ок.'] },
+      { t:'Шаг 7 — прогресс', d:'Выучено 10 слов.', tips:['~5% базового уровня.'] },
+      { t:'Шаг 8 — закрепление', d:'Повтори ключевые фразы.', tips:['Говори вслух.'] }
+    ];
+    let idx = 0;
+
+    function renderStep(){
+      const s = steps[idx];
+      $title.textContent = s.t;
+      $text.innerHTML = s.d;
+      $tips.innerHTML = s.tips.map(x=>`<li>${x}</li>`).join('');
+      const p = Math.round(((idx+1)/steps.length)*100);
+      $bar.style.width = p+'%';
+      document.getElementById('btn-next').textContent = (idx === steps.length-1) ? 'Завершить' : 'Далее';
+    }
+
+    document.getElementById('btn-start').onclick = () => { if (!isTelegram) show($offtg); else { show($lesson); idx=0; renderStep(); } };
+    document.getElementById('btn-open-chat').onclick = () => window.open(LINKS.bot, '_blank','noopener');
+    document.getElementById('btn-extend').onclick = () => window.open(LINKS.extend, '_blank','noopener');
+    document.getElementById('btn-open-tg').onclick = () => window.open(LINKS.bot, '_blank','noopener');
+
+    document.getElementById('btn-prev').onclick = () => { if (idx>0){ idx--; renderStep(); } else show($intro); };
+    document.getElementById('btn-next').onclick = () => { if (idx<steps.length-1){ idx++; renderStep(); } else show($intro); };
+  </script>
+</body>
+</html>

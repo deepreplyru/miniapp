@@ -1,0 +1,9 @@
+{
+  "name": "deepspeak-bot",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "openai": "4.59.1"
+  }
+}
